@@ -2,138 +2,63 @@ const { UserModel } = require("../models");
 
 //Dealing with data base operations
 class UserRepository {
-  async CreateUser({ role, email, password, name, address, cui }) {
-    const user = new UserModel({
-      role,
-      email,
-      password,
-      name,
-      address,
-      cui,
-    });
-
-    const customerResult = await user.save();
-    return customerResult;
-  }
-
-
-  async FindUser({ email }) {
-    const existingUser = await UserModel.findOne({ email: email });
-    return existingUser;
-  }
-
-  async FindUserById({ id }) {
-    const existingUser = await UserModel.findById(id).populate("address");
-
-    // await existingUser.save();
-    return existingUser;
-  }
-
-  async Wishlist(customerId) {
-    const profile = await UserModel.findById(customerId).populate("wishlist");
-
-    return profile.wishlist;
-  }
-
-  async AddWishlistItem(
-    customerId,
-    { _id, name, desc, price, available, banner }
-  ) {
-    const product = {
-      _id,
-      name,
-      desc,
-      price,
-      available,
-      banner,
-    };
-
-    const profile = await UserModel.findById(customerId).populate("wishlist");
-
-    if (profile) {
-      let wishlist = profile.wishlist;
-
-      if (wishlist.length > 0) {
-        let isExist = false;
-        wishlist.map((item) => {
-          if (item._id.toString() === product._id.toString()) {
-            const index = wishlist.indexOf(item);
-            wishlist.splice(index, 1);
-            isExist = true;
-          }
-        });
-
-        if (!isExist) {
-          wishlist.push(product);
-        }
-      } else {
-        wishlist.push(product);
+  async CreateUser({ rol, mail, parola, nume, adresa, cui }) {
+    try {
+      // Verificăm dacă există deja un utilizator cu aceeași adresă de email
+      const existingUser = await this.GetUserByEmail(mail);
+      if (existingUser) {
+        throw new Error("Adresa de email este deja înregistrată.");
       }
 
-      profile.wishlist = wishlist;
+      const user = new UserModel({
+        rol,
+        mail,
+        parola,
+        nume,
+        adresa,
+        cui,
+      });
+
+      // Salvăm utilizatorul în baza de date
+      const savedUser = await user.save();
+
+      // Returnăm ID-ul utilizatorului salvat
+      return savedUser._id;
+    } catch (error) {
+      throw error;
     }
-
-    const profileResult = await profile.save();
-
-    return profileResult.wishlist;
   }
 
-  async AddCartItem(customerId, { _id, name, price, banner }, qty, isRemove) {
-    const profile = await UserModel.findById(customerId).populate("cart");
-
-    if (profile) {
-      const cartItem = {
-        product: { _id, name, price, banner },
-        unit: qty,
-      };
-
-      let cartItems = profile.cart;
-
-      if (cartItems.length > 0) {
-        let isExist = false;
-        cartItems.map((item) => {
-          if (item.product._id.toString() === _id.toString()) {
-            if (isRemove) {
-              cartItems.splice(cartItems.indexOf(item), 1);
-            } else {
-              item.unit = qty;
-            }
-            isExist = true;
-          }
-        });
-
-        if (!isExist) {
-          cartItems.push(cartItem);
-        }
-      } else {
-        cartItems.push(cartItem);
-      }
-
-      profile.cart = cartItems;
-
-      return await profile.save();
-    }
-
-    throw new Error("Unable to add to cart!");
+  async GetUserByEmail(mail) {
+    return await UserModel.findOne({ mail: mail });
   }
 
-  async AddOrderToProfile(customerId, order) {
-    const profile = await UserModel.findById(customerId);
+  async GetUserById(id) {
+    return await UserModel.findById(id);
+  }
 
-    if (profile) {
-      if (profile.orders == undefined) {
-        profile.orders = [];
-      }
-      profile.orders.push(order);
+  async GetUsers() {
+    return await UserModel.find({}, { parola: 0, __v: 0 });
+  }
 
-      profile.cart = [];
-
-      const profileResult = await profile.save();
-
-      return profileResult;
+  async deleteUser(id) {
+    try {
+      const result = await UserModel.deleteOne({ _id: id });
+      return result.deletedCount;
+    } catch (error) {
+      throw error;
     }
+  }
 
-    throw new Error("Unable to add to order!");
+  async updateUser(data) {
+    try {
+      const updatedUser = await UserModel.findByIdAndUpdate(data.id, data, {
+        new: true,
+      });
+      return updatedUser;
+    } catch (error) {
+      throw error;
+    }
   }
 }
 

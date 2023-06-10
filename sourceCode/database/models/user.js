@@ -4,18 +4,17 @@ const Schema = mongoose.Schema;
 
 const UserSchema = new Schema(
   {
-    role: String,
-    email: String,
-    password: String,
-    name: String,
-    address: String,
+    rol: String,
+    mail: String,
+    parola: String,
+    nume: String,
+    adresa: String,
     cui: String,
-    phone: String,
   },
   {
     toJSON: {
       transform(doc, ret) {
-        delete ret.password;
+        // delete ret.parola;
         delete ret.__v;
       },
     },

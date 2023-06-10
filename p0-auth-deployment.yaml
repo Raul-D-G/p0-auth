@@ -32,8 +32,8 @@ spec:
               mountPath: /data/db
           resources:
             limits:
-              memory: 512Mi
-              cpu: 1
+              memory: 256Mi
+              cpu: 200m
             requests:
               memory: 128Mi
               cpu: 10m
@@ -53,10 +53,18 @@ spec:
                 secretKeyRef:
                   name: mongodb-secret
                   key: mongo-root-password
+            - name: APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: p0-auth-secret
+                  key: p0-auth-app-secret
             - name: MONGO_PORT
               value: "27017"
             - name: NODE_ENV
-              value: "development"
+              value: "prod"
+            - name: PORT
+              value: "8001"
+
 ---
 kind: Service
 apiVersion: v1
@@ -71,8 +79,8 @@ spec:
   ports:
     - name: http
       port: 8080
-      targetPort: 8080
+      targetPort: 8001
     - name: https
       port: 8443
-      targetPort: 8443
+      targetPort: 8001
   type: ClusterIP

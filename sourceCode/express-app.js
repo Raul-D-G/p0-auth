@@ -8,8 +8,6 @@ module.exports = async (app) => {
   app.use(cors());
   app.use(express.static(__dirname + "/public"));
 
-  //api
+  //router
   app.use("/api/users", userRouter);
-
-  // error handling
 };

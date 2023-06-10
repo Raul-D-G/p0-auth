@@ -1,55 +1,78 @@
 const { UserRepository } = require("../database");
+const repository = new UserRepository();
 
 // All Business logic will be here
-class UserService {
-  constructor() {
-    this.repository = new UserRepository();
-  }
+module.exports = {
+  create: (data, callBack) => {
+    repository
+      .CreateUser({
+        rol: data.rol,
+        mail: data.mail,
+        parola: data.parola,
+        nume: data.numeCompanie,
+        adresa: data.adresaCompanie,
+        cui: data.cuiCompanie,
+      })
+      .then((user) => {
+        callBack(null, user);
+      })
+      .catch((error) => {
+        callBack(error);
+      });
+  },
 
-  async SignIn(userInputs) {
-    const { email, password } = userInputs;
+  getUserById: (userId, callBack) => {
+    repository
+      .GetUserById(userId)
+      .then((user) => {
+        callBack(null, user);
+      })
+      .catch((error) => {
+        callBack(error);
+      });
+  },
 
-    const existingUser = await this.repository.FindUser({ email });
+  getUserByEmail: (userEmail, callBack) => {
+    repository
+      .GetUserByEmail(userEmail)
+      .then((user) => {
+        callBack(null, user);
+      })
+      .catch((error) => {
+        callBack(error);
+      });
+  },
 
-    if (existingUser) {
-      const validPassword = await ValidatePassword(
-        password,
-        existingUser.password,
-        existingUser.salt
-      );
-      if (validPassword) {
-        const token = await GenerateSignature({
-          email: existingUser.email,
-          _id: existingUser._id,
-        });
-        return FormateData({ id: existingUser._id, token });
-      }
-    }
+  getUsers: (callBack) => {
+    repository
+      .GetUsers()
+      .then((users) => {
+        callBack(null, users);
+      })
+      .catch((error) => {
+        callBack(error);
+      });
+  },
 
-    return FormateData(null);
-  }
+  updateUser: (data, callBack) => {
+    repository
+      .updateUser(data)
+      .then((results) => {
+        return callBack(null, results);
+      })
+      .catch((error) => {
+        return callBack(error);
+      });
+  },
 
-  async SignUp(userInputs) {
-    const { email, password, phone } = userInputs;
-
-    // create salt
-    let salt = await GenerateSalt();
-
-    let userPassword = await GeneratePassword(password, salt);
-
-    const existingUser = await this.repository.CreateUser({
-      email,
-      password: userPassword,
-      phone,
-      salt,
-    });
-
-    const token = await GenerateSignature({
-      email: email,
-      _id: existingUser._id,
-    });
-    return FormateData({ id: existingUser._id, token });
-  }
-}
-
-module.exports = UserService;
+  deleteUser: (userID, callBack) => {
+    repository
+      .deleteUser(userID)
+      .then((deletedCount) => {
+        callBack(null, deletedCount > 0);
+      })
+      .catch((error) => {
+        callBack(error);
+      });
+  },
+};

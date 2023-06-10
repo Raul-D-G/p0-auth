@@ -10,6 +10,8 @@ const {
 const { genSaltSync, hashSync, compareSync } = require("bcrypt");
 const { sign } = require("jsonwebtoken");
 
+const { APP_SECRET } = require("../config");
+
 module.exports = {
   createUser: (req, res) => {
     const body = req.body;
@@ -36,7 +38,10 @@ module.exports = {
     getUserById(id, (err, results) => {
       if (err) {
         console.error(err);
-        return;
+        return res.status(500).json({
+          success: 0,
+          message: "Database connection error",
+        });
       }
       if (!results) {
         return res.json({
@@ -52,10 +57,15 @@ module.exports = {
   },
 
   getUsers: (req, res) => {
+    console.log("Request de get all");
+
     getUsers((err, results) => {
       if (err) {
         console.error(err);
-        return;
+        return res.status(500).json({
+          success: 0,
+          message: "Database connection error",
+        });
       }
       return res.json({
         success: 1,
@@ -72,9 +82,12 @@ module.exports = {
     updateUser(body, (err, results) => {
       if (err) {
         console.error(err);
-        return;
+        return res.status(500).json({
+          success: 0,
+          message: "Database connection error",
+        });
       }
-      if (!res) {
+      if (!results) {
         return res.json({
           success: 0,
           message: "Nu s-a realizat modificarea",
@@ -88,8 +101,8 @@ module.exports = {
   },
 
   deleteUser: (req, res) => {
-    const data = req.body;
-    deleteUser(data, (err, results) => {
+    const userID = req.params.id;
+    deleteUser(userID, (err, results) => {
       if (err) {
         console.error(err);
         return;
@@ -125,7 +138,7 @@ module.exports = {
       const result = compareSync(body.parola, results.parola);
       if (result) {
         results.parola = undefined;
-        const jsontoken = sign({ user: results }, process.env.QWE, {
+        const jsontoken = sign({ user: results }, APP_SECRET, {
           expiresIn: "1h",
         });
         return res.status(200).json({

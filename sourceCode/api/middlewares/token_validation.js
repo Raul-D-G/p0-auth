@@ -1,11 +1,13 @@
 const { verify } = require("jsonwebtoken");
 
+const { APP_SECRET } = require("../../config");
+
 module.exports = {
   checkToken: (req, res, next) => {
     let token = req.get("Authorization");
     if (token) {
       token = token.slice(7);
-      verify(token, process.env.QWE, (err, decoded) => {
+      verify(token, APP_SECRET, (err, decoded) => {
         if (err) {
           res.status(401).json({
             error: "Acesul nu este permis! Token invalid",
