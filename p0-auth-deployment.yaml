@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: p0-auth-deployment
+  namespace: p0-namespace
+  labels:
+    app: p0-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: p0-auth
+  template:
+    metadata:
+      labels:
+        app: p0-auth
+    spec:
+      volumes:
+        # The Secret for Tools authenticaiton
+        - name: mongodb-data
+          persistentVolumeClaim:
+            claimName: mongodb-pvc
+      containers:
+        - name: p0-auth
+          image: localhost:5000/p0-auth:1.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+            - containerPort: 8443
+          volumeMounts:
+            - name: mongodb-data
+              mountPath: /data/db
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: 1
+            requests:
+              memory: 128Mi
+              cpu: 10m
+          env:
+            - name: MONGO_HOSTS
+              valueFrom:
+                configMapKeyRef:
+                  name: mongodb-configmap
+                  key: database_url
+            - name: MONGODB_ADMINUSERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: mongo-root-username
+            - name: MONGODB_ADMINPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: mongo-root-password
+            - name: MONGO_PORT
+              value: "27017"
+            - name: NODE_ENV
+              value: "development"
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: p0-auth-service
+  namespace: p0-namespace
+  labels:
+    name: p0-auth
+spec:
+  selector:
+    app: p0-auth
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+    - name: https
+      port: 8443
+      targetPort: 8443
+  type: ClusterIP
