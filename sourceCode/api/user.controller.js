@@ -35,6 +35,7 @@ module.exports = {
 
   getUserByUserId: (req, res) => {
     const id = req.params.id;
+
     getUserById(id, (err, results) => {
       if (err) {
         console.error(err);

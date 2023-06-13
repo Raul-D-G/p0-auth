@@ -63,7 +63,7 @@ spec:
             - name: NODE_ENV
               value: "prod"
             - name: PORT
-              value: "8001"
+              value: "8080"
 
 ---
 kind: Service
@@ -79,8 +79,8 @@ spec:
   ports:
     - name: http
       port: 8080
-      targetPort: 8001
+      targetPort: 8080
     - name: https
       port: 8443
-      targetPort: 8001
+      targetPort: 8080
   type: ClusterIP

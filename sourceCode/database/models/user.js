@@ -16,6 +16,8 @@ const UserSchema = new Schema(
       transform(doc, ret) {
         // delete ret.parola;
         delete ret.__v;
+        ret.id = ret._id; // Adaugă câmpul id bazat pe _id
+        delete ret._id; // Șterge câmpul _id
       },
     },
     timestamps: true,
